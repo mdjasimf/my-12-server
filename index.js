@@ -37,6 +37,22 @@ async function run() {
 
 
 
+        app.put('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const updateMinimumOrderQuantity = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    minimumOrderQuantity: updateMinimumOrderQuantity.minimumOrderQuantity
+                }
+            };
+
+            const result = await toolsCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
+
 
 
     }
