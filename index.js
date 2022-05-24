@@ -21,6 +21,7 @@ async function run() {
     try {
         await client.connect();
         const toolsCollection = client.db('manufacture').collection('tools');
+        const allOrders = client.db('allOrders').collection('orders');
 
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -34,6 +35,32 @@ async function run() {
             const tools = await toolsCollection.findOne(query);
             res.send(tools);
         });
+        app.get('/orders', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const cursor = allOrders.find(query);
+            const orders = await cursor.toArray();
+            res.send(orders);
+
+
+        });
+
+
+        app.delete('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await allOrders.deleteOne(query);
+            res.send(result);
+        });
+
+
+        app.post('/orders', async (req, res) => {
+            const newAdd = req.body;
+            const result = await allOrders.insertOne(newAdd);
+            res.send(result);
+        })
+
+
 
 
     }
