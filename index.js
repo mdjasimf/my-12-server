@@ -22,6 +22,8 @@ async function run() {
         await client.connect();
         const toolsCollection = client.db('manufacture').collection('tools');
         const allOrders = client.db('allOrders').collection('orders');
+        const allReviews = client.db('allReviews').collection('reviews');
+        const allProfile = client.db('allProfile').collection('profile');
 
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -59,9 +61,31 @@ async function run() {
             const result = await allOrders.insertOne(newAdd);
             res.send(result);
         })
+        app.post('/reviews', async (req, res) => {
+            const newAdd = req.body;
+            const result = await allReviews.insertOne(newAdd);
+            res.send(result);
+        });
 
 
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const cursor = allReviews.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+        app.get('/manageOrders', async (req, res) => {
+            const query = {};
+            const cursor = allOrders.find(query);
+            const AllOrders = await cursor.toArray();
+            res.send(AllOrders);
+        });
 
+        app.post('/profile', async (req, res) => {
+            const newAdd = req.body;
+            const result = await allProfile.insertOne(newAdd);
+            res.send(result);
+        });
 
     }
     finally {
