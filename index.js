@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -15,7 +17,20 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nipoy.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized access' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECERT, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
+    });
+}
 
 async function run() {
     try {
@@ -24,8 +39,20 @@ async function run() {
         const allOrders = client.db('allOrders').collection('orders');
         const allReviews = client.db('allReviews').collection('reviews');
         const allProfile = client.db('allProfile').collection('profile');
+        const allUsers = client.db('allUsers').collection('users');
 
-
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await allUsers.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECERT, { expiresIn: '1h' })
+            res.send({ result, token });
+        });
 
         app.post('/addTools', async (req, res) => {
             const newAdd = req.body;
@@ -38,18 +65,30 @@ async function run() {
             const tools = await cursor.toArray();
             res.send(tools);
         });
+        app.delete('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(query);
+            res.send(result);
+        });
         app.get('/tools/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const tools = await toolsCollection.findOne(query);
             res.send(tools);
         });
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', verifyJWT, async (req, res) => {
             const email = req.query.email;
-            const query = { email: email };
-            const cursor = allOrders.find(query);
-            const orders = await cursor.toArray();
-            res.send(orders);
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const cursor = allOrders.find(query);
+                const orders = await cursor.toArray();
+                return res.send(orders);
+            }
+            else {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
 
 
         });
@@ -93,6 +132,7 @@ async function run() {
             const result = await allProfile.insertOne(newAdd);
             res.send(result);
         });
+
 
     }
     finally {
