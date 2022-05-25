@@ -25,6 +25,13 @@ async function run() {
         const allReviews = client.db('allReviews').collection('reviews');
         const allProfile = client.db('allProfile').collection('profile');
 
+
+
+        app.post('/addTools', async (req, res) => {
+            const newAdd = req.body;
+            const result = await toolsCollection.insertOne(newAdd);
+            res.send(result);
+        });
         app.get('/tools', async (req, res) => {
             const query = {};
             const cursor = toolsCollection.find(query);
