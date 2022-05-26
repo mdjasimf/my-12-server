@@ -65,7 +65,7 @@ async function run() {
             const tools = await cursor.toArray();
             res.send(tools);
         });
-        app.get('/allUsers', async (req, res) => {
+        app.get('/allUsers', verifyJWT, async (req, res) => {
             const query = {};
             const cursor = allUsers.find(query);
             const users = await cursor.toArray();
