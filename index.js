@@ -65,6 +65,12 @@ async function run() {
             const tools = await cursor.toArray();
             res.send(tools);
         });
+        app.get('/allUsers', async (req, res) => {
+            const query = {};
+            const cursor = allUsers.find(query);
+            const users = await cursor.toArray();
+            res.send(users);
+        });
         app.delete('/tools/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
