@@ -41,6 +41,36 @@ async function run() {
         const allProfile = client.db('allProfile').collection('profile');
         const allUsers = client.db('allUsers').collection('users');
 
+
+
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const requester = req.decoded.email;
+            const requesterAccount = await allUsers.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                const updateDoc = {
+                    $set: { role: 'admin' },
+                };
+                const result = await allUsers.updateOne(filter, updateDoc);
+                res.send(result);
+            }
+            else {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+
+        });
+
+
+
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await allUsers.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin });
+        })
+
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
