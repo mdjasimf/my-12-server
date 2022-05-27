@@ -197,7 +197,7 @@ async function run() {
             const reviews = await cursor.toArray();
             res.send(reviews);
         });
-        app.get('/manageOrders', async (req, res) => {
+        app.get('/manageOrders', verifyJWT, async (req, res) => {
             const query = {};
             const cursor = allOrders.find(query);
             const AllOrders = await cursor.toArray();
