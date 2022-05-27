@@ -42,7 +42,6 @@ async function run() {
         const allReviews = client.db('allReviews').collection('reviews');
         const allProfile = client.db('allProfile').collection('profile');
         const allUsers = client.db('allUsers').collection('users');
-        const allUsersProfile = client.db('allUsers').collection('profile');
 
 
 
@@ -171,6 +170,7 @@ async function run() {
             const filter = { _id: ObjectId(id) };
             const updateDoc = {
                 $set: {
+                    paid: true,
                     transactionId: order.transactionId,
                 }
             }
@@ -178,7 +178,6 @@ async function run() {
             const result = await paymentOrder.insertOne(order);
             res.send(udDateOrder);
         })
-
 
 
 
